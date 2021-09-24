@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { CSSTransition } from 'react-transition-group';
+
 import { ReactComponent as BellIcon } from './icons/bell.svg';
 import { ReactComponent as MessengerIcon } from './icons/messenger.svg';
 import { ReactComponent as CaretIcon } from './icons/caret.svg';
@@ -12,8 +14,11 @@ function App() {
 	return (
 		<Navbar>
 			<NavItem icon={<PlusIcon />} />
-			<NavItem icon=':)' />
-			<NavItem icon=':)' />
+			<NavItem icon={<BellIcon />} />
+			<NavItem icon={<MessengerIcon />} />
+			<NavItem icon={<CaretIcon />}>
+				<DropdownMenu />
+			</NavItem>
 		</Navbar>
 	);
 }
@@ -27,12 +32,90 @@ function Navbar(props) {
 }
 
 function NavItem(props) {
+	const [open, setOpen] = useState(false);
+
 	return (
 		<li className='nav-item'>
-			<a href='#' className='icon-button'>
+			<a
+				href='#'
+				className='icon-button'
+				onClick={() => {
+					setOpen(!open);
+				}}
+			>
 				{props.icon}
 			</a>
+			{open && props.children}
 		</li>
+	);
+}
+
+function DropdownMenu() {
+	const [activeMenu, setActiveMenu] = useState('main');
+	const [menuHeight, setMenuHeight] = useState(null);
+
+	function calcHeight(el) {
+		const height = el.offsetHeight;
+		setMenuHeight(height);
+	}
+
+	function DropdownItem(props) {
+		return (
+			<a
+				href='#'
+				className='menu-item'
+				onClick={() => {
+					console.log('Logging goToMenu', props.goToMenu);
+					props.goToMenu && setActiveMenu(props.goToMenu);
+				}}
+			>
+				<span className='icon-button'>{props.leftIcon}</span>
+				{props.children}
+				<span className='icon-right'>{props.rightIcon}</span>
+			</a>
+		);
+	}
+	return (
+		<div className='dropdown' style={{ height: menuHeight }}>
+			<CSSTransition
+				in={activeMenu === 'main'}
+				unmountOnExit
+				timeout={500}
+				classNames='menu-primary'
+				onEnter={calcHeight}
+			>
+				<div className='menu'>
+					<DropdownItem leftIcon={<BellIcon />}>
+						Notifications
+					</DropdownItem>
+					<DropdownItem
+						leftIcon={<CogIcon />}
+						rightIcon={<CogIcon />}
+						goToMenu='settings'
+					>
+						Settings
+					</DropdownItem>
+				</div>
+			</CSSTransition>
+			<CSSTransition
+				in={activeMenu === 'settings'}
+				unmountOnExit
+				timeout={500}
+				classNames='menu-secondary'
+			>
+				<div className='menu'>
+					<DropdownItem leftIcon={<ArrowIcon />} goToMenu='main'>
+						Notifications
+					</DropdownItem>
+					<DropdownItem
+						leftIcon={<CogIcon />}
+						rightIcon={<CogIcon />}
+					>
+						Settings
+					</DropdownItem>
+				</div>
+			</CSSTransition>
+		</div>
 	);
 }
 
